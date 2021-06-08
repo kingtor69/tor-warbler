@@ -79,6 +79,7 @@ def signup():
                 location=form.location.data
             )
             db.session.commit()
+            # signup form processing was missing the last 3 fields, Tor Kingdon added them
 
         except IntegrityError:
             flash("Username already taken", 'danger')
@@ -217,7 +218,7 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    # Tor Kimgdon IMPLEMENTed THIS
 
 
 @app.route('/users/delete', methods=["POST"])

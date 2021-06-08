@@ -148,6 +148,7 @@ class User(db.Model):
             bio=bio,
             location=location
         )
+        # signup processing was missing the last 3 fields, Tor Kingdon added them
 
         db.session.add(user)
         return user

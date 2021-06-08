@@ -19,6 +19,7 @@ class UserAddForm(FlaskForm):
     header_image_url = StringField('(Optional) Header Image URL')
     bio = StringField('(Optional) Bio')
     location = StringField('(Optional) Location')
+    # signup form processing was missing the last 3 fields, Tor Kingdon added them
 
 
 class LoginForm(FlaskForm):
