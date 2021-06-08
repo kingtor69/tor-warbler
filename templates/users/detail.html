@@ -2,7 +2,10 @@
 
 {% block content %}
 
-<div id="warbler-hero" class="full-width"></div>
+<div id="warbler-hero" class="full-width">
+  <img src="{{ user.header_image_url }}" alt="" id="header-image">
+</div>
+<!-- TODO: the header image goes all the way across now (thanks to stylesheet #header-image), but extends down below that black menubar or whatever it is -->
 <img src="{{ user.image_url }}" alt="Image for {{ user.username }}" id="profile-avatar">
 <div class="row full-width">
   <div class="container">
@@ -57,9 +60,11 @@
 
 <div class="row">
   <div class="col-sm-3">
-    <h4 id="sidebar-username">@{{ user.username }}</h4>
-    <p>BIO HERE</p>
-    <p class="user-location"><span class="fa fa-map-marker"></span>LOCATION HERE</p>
+    <div class="card rounded p-3 pt-0 bg-light text-dark opacity50">
+      <h4 id="sidebar-username" class="card-header">@{{ user.username }}</h4>
+      <p class="card-text">{{ user.bio }}</p>
+      <p class="user-location card-text">{% if user.location %}<span class="fa fa-map-marker"></span>{% endif %} {{ user.location }}</p>
+    </div>
   </div>
 
   {% block user_details %}
