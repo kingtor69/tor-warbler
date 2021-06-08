@@ -113,8 +113,11 @@ def login():
 def logout():
     """Handle logout of user."""
 
-    # IMPLEMENT THIS
-
+    # Tor Kingdon IMPLEMENTed THIS
+    user = User.query.get_or_404(session[CURR_USER_KEY])
+    flash(f'Fly on, {user.username}. See you next time.', 'success')
+    do_logout()
+    return redirect('/login')
 
 ##############################################################################
 # General user routes:
@@ -290,7 +293,6 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-
     if g.user:
         messages = (Message
                     .query
