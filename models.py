@@ -131,7 +131,7 @@ class User(db.Model):
         return len(found_user_list) == 1
 
     @classmethod
-    def signup(cls, username, email, password, image_url):
+    def signup(cls, username, email, password, image_url, header_image_url, bio, location):
         """Sign up user.
 
         Hashes password and adds user to system.
@@ -144,7 +144,11 @@ class User(db.Model):
             email=email,
             password=hashed_pwd,
             image_url=image_url,
+            header_image_url=header_image_url,
+            bio=bio,
+            location=location
         )
+        # signup processing was missing the last 3 fields, Tor Kingdon added them
 
         db.session.add(user)
         return user

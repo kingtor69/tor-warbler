@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Follows
 
 CURR_USER_KEY = "curr_user"
 
@@ -18,7 +18,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 toolbar = DebugToolbarExtension(app)
 
@@ -74,8 +74,12 @@ def signup():
                 password=form.password.data,
                 email=form.email.data,
                 image_url=form.image_url.data or User.image_url.default.arg,
+                header_image_url=form.header_image_url.data or User.header_image_url.default.arg,
+                bio=form.bio.data,
+                location=form.location.data
             )
             db.session.commit()
+            # signup form processing was missing the last 3 fields, Tor Kingdon added them
 
         except IntegrityError:
             flash("Username already taken", 'danger')
@@ -113,8 +117,11 @@ def login():
 def logout():
     """Handle logout of user."""
 
-    # IMPLEMENT THIS
-
+    # Tor Kingdon IMPLEMENTed THIS
+    user = User.query.get_or_404(session[CURR_USER_KEY])
+    flash(f'Fly on, {user.username}. See you next time.', 'success')
+    do_logout()
+    return redirect('/login')
 
 ##############################################################################
 # General user routes:
@@ -211,8 +218,27 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    # Tor Kimgdon IMPLEMENTed THIS
+    if not CURR_USER_KEY in session:
+        flash('you must log in first', 'danger')
+        return redirect ('/login')
+    user = User.query.get_or_404(session[CURR_USER_KEY])
+    form = UserAddForm(obj=user)
+    if form.validate_on_submit():
+        if not User.authenticate(user.username, form.password.data):
+            flash('Can not edit profile without correct password', 'danger')
+            return redirect('/')
+        user.username = form.username.data
+        user.image_url = form.image_url.data
+        user.header_image_url = form.header_image_url.data
+        user.bio = form.bio.data
+        user.location = form.location.data
+        db.session.add(user)
+        db.session.commit()
+        flash('profile updated successfully', 'success')
+        return redirect(f'/users/{user.id}')
 
+    return render_template('users/edit.html', form=form, user_id=user.id)
 
 @app.route('/users/delete', methods=["POST"])
 def delete_user():
@@ -290,13 +316,24 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-
     if g.user:
+        following = (Follows
+                     .query
+                     .filter_by(user_following_id=g.user.id)
+                     .all())
+        following_ids = []
+        for follow in following: 
+            following_ids.append(follow.user_being_followed_id) 
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(following_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
+        if len(messages) == 0:
+            flash('follow other warblers to see warbles on this page', 'info')
+            # TODO: how does someone follow something they can't see...?
+            # i.e. at this stage, a new user can not see any warbles and can not find any warblers to follow
 
         return render_template('home.html', messages=messages)
 

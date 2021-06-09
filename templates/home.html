@@ -14,6 +14,9 @@
                  class="card-image">
             <p>@{{ g.user.username }}</p>
           </a>
+          <p class="card-text px-2">{{ g.user.bio }}</p>
+          <p class="user-location card-text px-2">{% if g.user.location %}<span class="fa fa-map-marker"></span>{% endif %} {{ g.user.location }}</p>
+    
           <ul class="user-stats nav nav-pills">
             <li class="stat">
               <p class="small">Messages</p>
