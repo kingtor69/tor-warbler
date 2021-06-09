@@ -4,6 +4,8 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
+from datetime import datetime
+
 from forms import UserAddForm, LoginForm, MessageForm
 from models import db, connect_db, User, Message, Follows
 
@@ -138,7 +140,7 @@ def list_users():
     if not search:
         users = User.query.all()
     else:
-        users = User.query.filter(User.username.like(f"%{search}%")).all()
+        users = User.query.filter(User.username.ilike(f"%{search}%")).all()
 
     return render_template('users/index.html', users=users)
 
@@ -273,7 +275,7 @@ def messages_add():
     form = MessageForm()
 
     if form.validate_on_submit():
-        msg = Message(text=form.text.data)
+        msg = Message(text=form.text.data, timestamp=datetime.utcnow())
         g.user.messages.append(msg)
         db.session.commit()
 
@@ -332,10 +334,9 @@ def homepage():
                     .all())
         if len(messages) == 0:
             flash('follow other warblers to see warbles on this page', 'info')
-            # TODO: how does someone follow something they can't see...?
-            # i.e. at this stage, a new user can not see any warbles and can not find any warblers to follow
 
-        return render_template('home.html', messages=messages)
+        form = MessageForm()
+        return render_template('home.html', messages=messages, form=form)
 
     else:
         return render_template('home-anon.html')
