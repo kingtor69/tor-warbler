@@ -13,6 +13,7 @@
    - `datetime.utcnow()` was only getting called at the beginning of a session. I changed it so that the default datetime was overridden by a new call of `datetime.utcnow()` when processing the new warble form
 
 ## Part Two: Likes
+ - These likes would probably be better done on the client-side using AJAX in JavaScript, but for the purposes of this exercise, it is done in the backend.
 
 ### goals **if time permits**
    - expand search to also search for text within warbles, bios, locations, etc.
