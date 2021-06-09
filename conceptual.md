@@ -3,7 +3,7 @@
 ### Springboard Software Engineering Career Track Unit 26
 
 ### Part One
-#### Step Six
+#### Step Seven
 ##### How is the loggin in user being kept track of?
 
 The user_id is being saved in the Flask session
