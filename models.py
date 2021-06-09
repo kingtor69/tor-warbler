@@ -9,7 +9,7 @@ bcrypt = Bcrypt()
 db = SQLAlchemy()
 
 
-class Follows(db.Model):
+class Follow(db.Model):
     """Connection of a follower <-> followed_user."""
 
     __tablename__ = 'follows'
@@ -27,7 +27,7 @@ class Follows(db.Model):
     )
 
 
-class Likes(db.Model):
+class Like(db.Model):
     """Mapping user likes to warbles."""
 
     __tablename__ = 'likes' 
@@ -99,15 +99,15 @@ class User(db.Model):
     followers = db.relationship(
         "User",
         secondary="follows",
-        primaryjoin=(Follows.user_being_followed_id == id),
-        secondaryjoin=(Follows.user_following_id == id)
+        primaryjoin=(Follow.user_being_followed_id == id),
+        secondaryjoin=(Follow.user_following_id == id)
     )
 
     following = db.relationship(
         "User",
         secondary="follows",
-        primaryjoin=(Follows.user_following_id == id),
-        secondaryjoin=(Follows.user_being_followed_id == id)
+        primaryjoin=(Follow.user_following_id == id),
+        secondaryjoin=(Follow.user_being_followed_id == id)
     )
 
     likes = db.relationship(

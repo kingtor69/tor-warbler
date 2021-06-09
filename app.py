@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
 from forms import UserAddForm, LoginForm, MessageForm
-from models import db, connect_db, User, Message, Follows
+from models import db, connect_db, User, Message, Follow, Like
 
 CURR_USER_KEY = "curr_user"
 
@@ -215,6 +215,21 @@ def stop_following(follow_id):
 
     return redirect(f"/users/{g.user.id}/following")
 
+@app.route('/users/add_like/<int:msg_id>', methods=["POST"])
+def add_like(msg_id):
+    if not g.user:
+        flash("You must be logged in to like warbles.", "info")
+        return redirect("/login")
+
+    is_liked = Like.query.filter(Like.user_id==g.user.id and Like.message_id==msg_id).first()
+    if is_liked:
+        db.session.delete(is_liked)
+    else:
+        like=Like(user_id=g.user.id, message_id=msg_id)
+        db.session.add(like)
+
+    db.session.commit()
+    return redirect('/')
 
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
@@ -319,7 +334,7 @@ def homepage():
     - logged in: 100 most recent messages of followed_users
     """
     if g.user:
-        following = (Follows
+        following = (Follow
                      .query
                      .filter_by(user_following_id=g.user.id)
                      .all())
@@ -335,8 +350,10 @@ def homepage():
         if len(messages) == 0:
             flash('follow other warblers to see warbles on this page', 'info')
 
+        likes=Like.query.filter_by(user_id=g.user.id).all()
+
         form = MessageForm()
-        return render_template('home.html', messages=messages, form=form)
+        return render_template('home.html', messages=messages, form=form, likes=likes)
 
     else:
         return render_template('home-anon.html')
