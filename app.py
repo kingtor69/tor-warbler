@@ -219,6 +219,8 @@ def profile():
     """Update profile for current user."""
 
     # Tor Kimgdon IMPLEMENTed THIS
+    user = User.get_or_404()
+    form = UserAddForm(obj=user)
 
 
 @app.route('/users/delete', methods=["POST"])
