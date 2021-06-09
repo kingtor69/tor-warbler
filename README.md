@@ -4,4 +4,4 @@
 
 #### Part One
  - fixed existing features
- - still needed: new users have no way to discover other users to follow
+ - **still needed**: new users have no way to discover other users to follow
