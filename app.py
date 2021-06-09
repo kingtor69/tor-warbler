@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Follows
 
 CURR_USER_KEY = "curr_user"
 
@@ -317,11 +317,23 @@ def homepage():
     - logged in: 100 most recent messages of followed_users
     """
     if g.user:
+        following = (Follows
+                     .query
+                     .filter_by(user_following_id=g.user.id)
+                     .all())
+        following_ids = []
+        for follow in following: 
+            following_ids.append(follow.user_being_followed_id) 
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(following_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
+        if len(messages) == 0:
+            flash('follow other warblers to see warbles on this page', 'info')
+            # TODO: how does someone follow something they can't see...?
+            # i.e. at this stage, a new user can not see any warbles and can not find any warblers to follow
 
         return render_template('home.html', messages=messages)
 
