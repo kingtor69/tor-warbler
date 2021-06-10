@@ -6,6 +6,8 @@ from sqlalchemy.exc import IntegrityError
 
 from datetime import datetime
 
+from sqlalchemy.orm import query
+
 from forms import UserAddForm, LoginForm, MessageForm
 from models import db, connect_db, User, Message, Follow, Like
 
@@ -159,7 +161,11 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    return render_template('users/show.html', user=user, messages=messages)
+    likes = (Like
+             .query
+             .filter_by(user_id=user_id)
+             .all())
+    return render_template('users/show.html', user=user, messages=messages, likes=likes)
 
 
 @app.route('/users/<int:user_id>/following')
@@ -221,7 +227,11 @@ def add_like(msg_id):
         flash("You must be logged in to like warbles.", "info")
         return redirect("/login")
 
-    is_liked = Like.query.filter_by(user_id=g.user.id).filter_by(message_id=msg_id).first()
+    is_liked = (Like
+                .query
+                .filter_by(user_id=g.user.id)
+                .filter_by(message_id=msg_id)
+                .first())
     if is_liked:
         db.session.delete(is_liked)
     else:
@@ -230,6 +240,43 @@ def add_like(msg_id):
 
     db.session.commit()
     return redirect('/')
+
+@app.route('/users/remove_like/<int:msg_id>', methods=["POST"])
+def remove_like(msg_id):
+    if not g.user:
+        flash("You must be logged in to dislike warbles.", "info")
+        return redirect("/login")
+
+
+    dislike = (Like
+                .query
+                .filter_by(user_id=g.user.id)
+                .filter_by(message_id=msg_id)
+                .first())
+    if dislike:
+        db.session.delete(dislike)
+        db.session.commit()
+    else:
+        flash("You can only dislike warbles you have liked.", "info")
+        return redirect('/')
+
+    return redirect(f'/users/{g.user.id}/likes')
+
+@app.route('/users/<int:user_id>/likes')
+def show_liked_messages(user_id):
+    """shows a list of warbles a given warbler has liked"""
+
+    user = User.query.get_or_404(user_id)
+    likes = (Like
+                 .query
+                 .filter_by(user_id = user_id)
+                 .order_by("id desc")
+                 .all())
+    liked_messages = []
+    for like in likes:
+        liked_messages.append(Message.query.get(like.message_id))
+
+    return render_template('users/likes.html', messages=liked_messages, user=user)
 
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
@@ -360,6 +407,10 @@ def homepage():
     else:
         return render_template('home-anon.html')
 
+@app.errorhandler(404)
+def handle_404(e):
+    flash("We couldn't find that page.", 'warning')
+    return redirect('/')
 
 ##############################################################################
 # Turn off all caching in Flask
