@@ -221,7 +221,7 @@ def add_like(msg_id):
         flash("You must be logged in to like warbles.", "info")
         return redirect("/login")
 
-    is_liked = Like.query.filter(Like.user_id==g.user.id and Like.message_id==msg_id).first()
+    is_liked = Like.query.filter_by(user_id=g.user.id).filter_by(message_id=msg_id).first()
     if is_liked:
         db.session.delete(is_liked)
     else:
@@ -350,8 +350,10 @@ def homepage():
         if len(messages) == 0:
             flash('follow other warblers to see warbles on this page', 'info')
 
-        likes=Like.query.filter_by(user_id=g.user.id).all()
-
+        likes_ORMs=Like.query.filter_by(user_id=g.user.id).all()
+        likes=[]
+        for like in likes_ORMs:
+            likes.append(like.message_id)
         form = MessageForm()
         return render_template('home.html', messages=messages, form=form, likes=likes)
 
