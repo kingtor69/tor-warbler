@@ -8,14 +8,15 @@
 import os
 from unittest import TestCase
 
-from models import db, User, Message, Follows
+from models import db, User, Message, Follow, Like
+from datetime import datetime
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
 # before we import our app, since that will have already
 # connected to the database
 
-os.environ['DATABASE_URL'] = "postgresql:///warbler-test"
+os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 
 
 # Now we can import app
@@ -30,29 +31,66 @@ db.create_all()
 
 
 class UserModelTestCase(TestCase):
-    """Test views for messages."""
+    """Test model for users."""
 
     def setUp(self):
         """Create test client, add sample data."""
 
         User.query.delete()
         Message.query.delete()
-        Follows.query.delete()
+        Follow.query.delete()
 
         self.client = app.test_client()
 
-    def test_user_model(self):
-        """Does basic model work?"""
+    def tearDown(self):
+        db.session.rollback()
 
-        u = User(
-            email="test@test.com",
-            username="testuser",
-            password="HASHED_PASSWORD"
-        )
+    def test_user_model(self):
+        """Does basic User model work?
+        A new user should:
+            - exist
+            - have zero messages and zero followers
+            - should have a hashed password, i.e:
+                - password in database should *not* equal the entered password
+                - hashed password should have a length of 60 characters
+        """
+        u = User.signup("test_user", "test@test.com", "HASHED_PASSWORD")
 
         db.session.add(u)
         db.session.commit()
 
-        # User should have no messages & no followers
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
+        self.assertNotEqual(u.password, "HASHED_PASSWORD")
+        self.assertEqual(len(u.password), 60)
+
+class MessageModelTestase(TestCase):
+    """Test model for messages."""
+
+    def setUp(self):
+        """Create test client, add sample data."""
+
+        User.query.delete()
+        Message.query.delete()
+        Follow.query.delete()
+
+        self.client = app.test_client()
+
+    def tearDown(self):
+        db.session.rollback()
+
+    def test_user_model(self):
+        """Does basic Message model work?
+        A new message should:
+            - exist
+            - have a time stamp
+            - have zero likes
+        """
+        u = User.signup("test_user", "test@test.com", "HASHED_PASSWORD")
+        m = Message(text="warble warble")
+
+        u.messages.append(m)
+        db.session.commit()
+
+        self.assertNotIn(m.id, Like.query.all())
+        self.assertIs(m.datetime, datetime.datetime)
