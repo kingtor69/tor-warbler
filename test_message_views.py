@@ -1,4 +1,6 @@
 """Message View tests."""
+# starter code by Colt Steele and/or Rithm School and/or Springboard
+# except as noted where changed or added by Tor Kingdon
 
 # run these tests like:
 #
@@ -15,7 +17,8 @@ from models import db, connect_db, Message, User
 # before we import our app, since that will have already
 # connected to the database
 
-os.environ['DATABASE_URL'] = "postgresql:///warbler-test"
+# invalid postgres name (with a dash) changed by Tor Kingdon
+os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 
 
 # Now we can import app

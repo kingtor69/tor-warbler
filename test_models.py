@@ -1,5 +1,5 @@
 # starter code by Colt Steele and/or Rithm School and/or Springboard
-# Tor Kingdon added as noted
+# Tor Kingdon added liberally (as noted)
 """User model tests."""
 
 # run these tests like:
@@ -10,6 +10,7 @@
 import os
 from unittest import TestCase
 
+# additional models added by Tor Kingdon
 from models import db, User, Message, Follow, Like
 from datetime import datetime
 
@@ -36,6 +37,10 @@ db.create_all()
 class UserModelTestCase(TestCase):
     """Test model for users."""
 
+# Does User.authenticate successfully return a user when given a valid username and password?
+# Does User.authenticate fail to return a user when the username is invalid?
+# Does User.authenticate fail to return a user when the password is invalid?
+
     def setUp(self):
         """Create test client, add sample data."""
 
@@ -59,6 +64,8 @@ class UserModelTestCase(TestCase):
             - should have a hashed password, i.e:
                 - password in database should *not* equal the entered password
                 - hashed password should have a length of 60 characters
+                - all Bcrypt strings start with '$2b$'
+        User.__repr__(u) should return correct information
         """
         # user definition rewritten (to include password hashing) by Tor Kingdon
         u = User.signup("test_user", "test@test.com", "UNHASHED_PASSWORD")
@@ -71,6 +78,36 @@ class UserModelTestCase(TestCase):
         # password hashing tests written by Tor Kingdon
         self.assertNotEqual(u.password, "UNHASHED_PASSWORD")
         self.assertEqual(len(u.password), 60)
+        self.assertTrue(u.password.startswith("$2b$"))
+        # __repr__ test written by Tor Kingdon
+        self.assertEqual(u.__repr__(), f"<User #{u.id}: {u.username}, {u.email}>")
+
+    # exceptions tests written by Tor Kingdon
+    # with a hint taken from the solution code by Colt Steele and/or Rithm School and/or Springboard
+    def test_incomplete_user_exception(self):
+        """Test if imcomplete data yields a TypeError."""
+        u_username_only = User(username="incomplete_user")
+        with self.assertRaises(TypeError) as err:
+            User.signup(u_username_only)
+
+    def test_invalid_password(self):
+        """TypeError should result if password is under 6 characters in length"""
+        u_invalid_password = User(username="bad_user", email="bad@baduser.com", password="df")
+        with self.assertRaises(TypeError) as err:
+            User.signup(u_invalid_password)
+
+    # authentication tests written by Tor Kingdon
+    def test_user_authentication(self):
+        """test User.authenitcate(), which should:
+            - return a user when sent valid credentials
+            - return False when sent invalid username
+            - return False when sent invalid password
+        """
+        u = User.signup("testuser", "test@email.com", "hashedPotat03$", None, None, None, None)
+        
+        self.assertEqual(User.authenticate("testuser", "hashedPotat03$"), u)
+        self.assertEqual(User.authenticate("testyuser", "hashedPotat03$"), False)
+        self.assertEqual(User.authenticate("testuser", "smashedPotat03$"), False)
 
 # rest of model test cases written by Tor Kingdon
 class MessageModelTestCase(TestCase):
@@ -115,6 +152,8 @@ class MessageModelTestCase(TestCase):
         self.assertNotIn(m.id, Like.query.all())
         self.assertTrue(m.timestamp.today)
         self.assertEqual(m.user_id, u.id)
+        self.assertEqual(m.__repr__(), f"<Message #{m.id}: {m.text}, {u.username}>")
+
 
 class FollowModelTestCase(TestCase):
     """Test model for Follow"""
@@ -136,6 +175,8 @@ class FollowModelTestCase(TestCase):
             - exist (any test referring to it will fail if it does not exist)
             - return u1 as follower and u2 as followee
             - not return the opposite (specific to test case, not necessarily true in production)
+            - return u2 as being followed by u1
+            - not return the opposite (again, specific to test case)
         """
         ### no need to take the time to salt & hash password for this test
         u1 = User(
