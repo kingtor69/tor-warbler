@@ -37,10 +37,6 @@ db.create_all()
 class UserModelTestCase(TestCase):
     """Test model for users."""
 
-# Does User.authenticate successfully return a user when given a valid username and password?
-# Does User.authenticate fail to return a user when the username is invalid?
-# Does User.authenticate fail to return a user when the password is invalid?
-
     def setUp(self):
         """Create test client, add sample data."""
 
